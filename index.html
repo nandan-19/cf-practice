@@ -1066,7 +1066,7 @@
                 <div class="user-card">
                     <div class="field">
                         <span class="field-icon"><i data-lucide="at-sign"></i></span>
-                        <input type="text" id="handleInput" value="nandan_19" placeholder="Codeforces handle"
+                        <input type="text" id="handleInput" placeholder="Enter Codeforces handle"
                             class="inp" />
                     </div>
                     <button id="fetchUserBtn" class="sync-btn">
@@ -1235,8 +1235,12 @@
                     contestName: contestMap[p.contestId] || `Contest ${p.contestId}`
                 }));
 
-                const h = document.getElementById('handleInput').value.trim();
-                if (h) await syncUser(h, false);
+                // Restore saved handle and auto-sync (respects API — only if user previously saved one)
+                const savedHandle = localStorage.getItem('cf_handle');
+                if (savedHandle) {
+                    document.getElementById('handleInput').value = savedHandle;
+                    await syncUser(savedHandle, false);
+                }
 
                 document.getElementById('loadingOverlay').classList.add('fade-out');
                 setupUI();
@@ -1260,6 +1264,8 @@
                 d.result.forEach(s => { if (s.verdict === 'OK') userSolved.add(`${s.problem.contestId}${s.problem.index}`); });
                 const pill = document.getElementById('solvedCount');
                 pill.textContent = userSolved.size;
+                // Persist handle so we auto-sync on next visit
+                localStorage.setItem('cf_handle', handle);
                 filter();
                 if (loud) { btn.innerHTML = `<i data-lucide="check" style="width:12px;height:12px;"></i> Synced`; lucide.createIcons(); }
             } catch (e) {
