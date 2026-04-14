@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CF Practice Pro</title>
+    <meta name="description"
+        content="Codeforces problem browser with filters, spoiler-free tags, and live solve counts.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ── TOKENS ─────────────────────────────────────────── */
+        :root {
+            --bg: #111113;
+            --surface: #18181b;
+            --surface-2: #1f1f23;
+            --surface-3: #27272a;
+            --border: #2e2e33;
+            --border-subtle: #222225;
+
+            --text-1: #fafafa;
+            --text-2: #a1a1aa;
+            --text-3: #52525b;
+            --text-4: #3f3f46;
+
+            --accent: #3b82f6;
+            --accent-dim: rgba(59, 130, 246, 0.12);
+            --accent-border: rgba(59, 130, 246, 0.3);
+
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --yellow: #eab308;
+            --purple: #a855f7;
+            --cyan: #06b6d4;
+
+            --font: 'Inter', system-ui, sans-serif;
+            --mono: 'Geist Mono', 'Fira Code', monospace;
+
+            --radius-xs: 4px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+            --radius-full: 999px;
+
+            --t: 150ms ease;
+        }
+
+        /* ── RESET ──────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text-1);
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── SCROLLBAR ──────────────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface-3);
+            border-radius: var(--radius-full);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border);
+        }
+
+        /* ── LOADING ────────────────────────────────────────── */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            transition: opacity 0.4s ease;
+        }
+
+        #loadingOverlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loadingText {
+            font-size: 13px;
+            color: var(--text-2);
+            font-weight: 500;
+        }
+
+        /* ── SIDEBAR ────────────────────────────────────────── */
+        #sidebar {
+            width: 256px;
+            min-width: 256px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* Sidebar scrollable area */
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 0 24px;
+        }
+
+        /* Logo / brand row */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 16px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .brand-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-icon svg {
+            width: 15px;
+            height: 15px;
+            color: var(--accent);
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-1);
+            letter-spacing: -0.01em;
+        }
+
+        .brand-tag {
+            margin-left: auto;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            background: var(--accent-dim);
+            border: 1px solid var(--accent-border);
+            border-radius: var(--radius-full);
+            padding: 1px 7px;
+        }
+
+        /* Section block */
+        .s-block {
+            padding: 16px 16px 0;
+        }
+
+        .s-block+.s-block {
+            padding-top: 14px;
+        }
+
+        .s-divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 14px 0 0;
+        }
+
+        /* Section label */
+        .s-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* User card */
+        .user-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Input */
+        .field {
+            position: relative;
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-3);
+            pointer-events: none;
+        }
+
+        .field-icon svg {
+            width: 13px;
+            height: 13px;
+            display: block;
+        }
+
+        .inp {
+            width: 100%;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 7px 10px 7px 30px;
+            font-size: 13px;
+            color: var(--text-1);
+            font-family: var(--font);
+            outline: none;
+            transition: var(--t);
+        }
+
+        .inp::placeholder {
+            color: var(--text-3);
+        }
+
+        .inp:focus {
+            border-color: var(--accent-border);
+            background: var(--surface-2);
+            box-shadow: 0 0 0 2px var(--accent-dim);
+        }
+
+        /* Sync button */
+        .sync-btn {
+            width: 100%;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: var(--t);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: var(--font);
+        }
+
+        .sync-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--border);
+            color: var(--text-1);
+        }
+
+        .sync-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .sync-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Toggle row */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .toggle-row span {
+            font-size: 12px;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Custom checkbox */
+        .ck {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface-3);
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: var(--t);
+        }
+
+        .ck:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .ck:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1.5px;
+            width: 4px;
+            height: 7px;
+            border: 1.5px solid #fff;
+            border-top: 0;
+            border-left: 0;
+            transform: rotate(45deg);
+        }
+
+        .count-pill {
+            font-size: 10px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-radius: var(--radius-full);
+            padding: 0 6px;
+            line-height: 18px;
+        }
+
+        /* Rating inputs */
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rating-inp {
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 6px 8px;
+            font-size: 12px;
+            font-family: var(--mono);
+            color: var(--text-1);
+            outline: none;
+            transition: var(--t);
+            -moz-appearance: textfield;
+        }
+
+        .rating-inp::-webkit-outer-spin-button,
+        .rating-inp::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+
+        .rating-inp::placeholder {
+            color: var(--text-3);
+            font-family: var(--font);
+            font-size: 11px;
+        }
+
+        .rating-inp:focus {
+            border-color: var(--accent-border);
+            box-shadow: 0 0 0 2px var(--accent-dim);
+        }
+
+        .rating-sep {
+            color: var(--text-3);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Division pills - 2-col grid */
+        .div-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+
+        /* Index row */
+        .idx-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        /* Generic filter button */
+        .f-btn {
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: var(--t);
+            font-family: var(--font);
+            text-align: left;
+            line-height: 1;
+        }
+
+        .f-btn:hover {
+            background: var(--surface-3);
+            color: var(--text-1);
+            border-color: var(--border);
+        }
+
+        .f-btn.on {
+            background: var(--accent-dim);
+            border-color: var(--accent-border);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Index button - square */
+        .idx-btn {
+            width: 30px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: var(--text-2);
+            cursor: pointer;
+            transition: var(--t);
+        }
+
+        .idx-btn:hover {
+            background: var(--surface-3);
+            color: var(--text-1);
+        }
+
+        .idx-btn.on {
+            background: var(--accent-dim);
+            border-color: var(--accent-border);
+            color: var(--accent);
+        }
+
+        /* Tag chips */
+        .tag-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .t-chip {
+            padding: 3px 8px;
+            font-size: 10px;
+            font-weight: 500;
+            border-radius: var(--radius-full);
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-3);
+            cursor: pointer;
+            transition: var(--t);
+            font-family: var(--font);
+            line-height: 1.5;
+        }
+
+        .t-chip:hover {
+            border-color: var(--border);
+            color: var(--text-2);
+            background: var(--surface-2);
+        }
+
+        .t-chip.on {
+            background: var(--accent-dim);
+            border-color: var(--accent-border);
+            color: var(--accent);
+        }
+
+        .clear-btn {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: var(--t);
+            display: none;
+            font-family: var(--font);
+        }
+
+        .clear-btn:hover {
+            color: var(--text-2);
+        }
+
+        .clear-btn.show {
+            display: inline;
+        }
+
+        /* ── MAIN ───────────────────────────────────────────── */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        /* Header */
+        #header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-3);
+            pointer-events: none;
+        }
+
+        .search-icon svg {
+            width: 14px;
+            height: 14px;
+            display: block;
+        }
+
+        .search-inp {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 7px 12px 7px 32px;
+            font-size: 13px;
+            color: var(--text-1);
+            outline: none;
+            font-family: var(--font);
+            transition: var(--t);
+        }
+
+        .search-inp::placeholder {
+            color: var(--text-3);
+        }
+
+        .search-inp:focus {
+            border-color: var(--accent-border);
+            background: var(--surface-3);
+            box-shadow: 0 0 0 2px var(--accent-dim);
+        }
+
+        /* Controls row */
+        .ctrl-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .sort-select {
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-2);
+            outline: none;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--t);
+        }
+
+        .sort-select:hover {
+            border-color: var(--border);
+            color: var(--text-1);
+        }
+
+        .sort-select option {
+            background: var(--surface-3);
+        }
+
+        .toggle-hl {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 7px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-2);
+            white-space: nowrap;
+            transition: var(--t);
+            user-select: none;
+        }
+
+        .toggle-hl:hover {
+            border-color: var(--border);
+            color: var(--text-1);
+        }
+
+        .random-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: var(--t);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .random-btn:hover {
+            background: #2563eb;
+        }
+
+        .random-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        /* Stats bar */
+        #statsBar {
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 6px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-3);
+            flex-shrink: 0;
+            background: var(--bg);
+        }
+
+        #resultCount {
+            color: var(--text-2);
+            font-weight: 600;
+            font-family: var(--mono);
+        }
+
+        .page-info {
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        /* Table container */
+        #tableContainer {
+            flex: 1;
+            overflow: auto;
+            padding: 16px 20px;
+        }
+
+        /* Table card */
+        .tbl-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        thead th {
+            padding: 9px 16px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background var(--t);
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--surface-2);
+        }
+
+        tbody tr.solved {
+            background: rgba(34, 197, 94, 0.04);
+        }
+
+        tbody tr.solved:hover {
+            background: rgba(34, 197, 94, 0.07);
+        }
+
+        td {
+            padding: 10px 16px;
+            vertical-align: middle;
+        }
+
+        /* Problem ID */
+        .pid {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pid svg {
+            width: 12px;
+            height: 12px;
+            color: var(--green);
+            flex-shrink: 0;
+        }
+
+        /* Problem name */
+        .pname {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-1);
+            text-decoration: none;
+            display: block;
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color var(--t);
+        }
+
+        .pname:hover {
+            color: var(--accent);
+        }
+
+        .pcontest {
+            font-size: 11px;
+            color: var(--text-3);
+            display: block;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+
+        /* Rating badge */
+        .rbadge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-xs);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--mono);
+            border: 1px solid;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        .r-na {
+            color: var(--text-3);
+            border-color: var(--border-subtle);
+            background: transparent;
+        }
+
+        .r-gray {
+            color: #a1a1aa;
+            border-color: rgba(161, 161, 170, 0.2);
+            background: rgba(161, 161, 170, 0.06);
+        }
+
+        .r-green {
+            color: #4ade80;
+            border-color: rgba(74, 222, 128, 0.25);
+            background: rgba(74, 222, 128, 0.06);
+        }
+
+        .r-teal {
+            color: #2dd4bf;
+            border-color: rgba(45, 212, 191, 0.25);
+            background: rgba(45, 212, 191, 0.06);
+        }
+
+        .r-blue {
+            color: #60a5fa;
+            border-color: rgba(96, 165, 250, 0.25);
+            background: rgba(96, 165, 250, 0.06);
+        }
+
+        .r-purple {
+            color: #c084fc;
+            border-color: rgba(192, 132, 252, 0.25);
+            background: rgba(192, 132, 252, 0.06);
+        }
+
+        .r-yellow {
+            color: #facc15;
+            border-color: rgba(250, 204, 21, 0.25);
+            background: rgba(250, 204, 21, 0.06);
+        }
+
+        .r-orange {
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.25);
+            background: rgba(251, 146, 60, 0.06);
+        }
+
+        .r-red {
+            color: #f87171;
+            border-color: rgba(248, 113, 113, 0.3);
+            background: rgba(248, 113, 113, 0.06);
+        }
+
+        /* Solve count */
+        .scount {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-family: var(--mono);
+            color: var(--text-3);
+        }
+
+        .scount svg {
+            width: 11px;
+            height: 11px;
+        }
+
+        /* Tags */
+        .tags-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .tags-wrap.blur-tags .cf-tag {
+            filter: blur(4px);
+            transition: filter 0.3s;
+            cursor: default;
+        }
+
+        .tags-wrap.blur-tags:hover .cf-tag {
+            filter: none;
+        }
+
+        .cf-tag {
+            font-size: 9px;
+            font-weight: 500;
+            text-transform: capitalize;
+            padding: 2px 7px;
+            border-radius: var(--radius-full);
+            background: var(--surface-3);
+            color: var(--text-3);
+            border: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+
+        .cf-tag-more {
+            font-size: 9px;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: var(--radius-full);
+            background: transparent;
+            color: var(--text-4);
+            border: 1px solid var(--border-subtle);
+        }
+
+        /* Open button */
+        .open-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-3);
+            text-decoration: none;
+            transition: var(--t);
+        }
+
+        .open-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .open-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Empty state */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 60px 24px;
+            color: var(--text-3);
+            text-align: center;
+        }
+
+        .empty svg {
+            width: 36px;
+            height: 36px;
+            opacity: 0.3;
+        }
+
+        .empty p {
+            font-size: 13px;
+            color: var(--text-3);
+        }
+
+        /* Pagination */
+        #pagination {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 8px 12px;
+        }
+
+        #pagination.hidden {
+            display: none;
+        }
+
+        .pg-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-2);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--t);
+            font-family: var(--font);
+        }
+
+        .pg-btn:hover:not(:disabled) {
+            background: var(--surface-3);
+            color: var(--text-1);
+            border-color: var(--border);
+        }
+
+        .pg-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .pg-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        #paginationInfo {
+            font-size: 11px;
+            color: var(--text-3);
+            font-family: var(--mono);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOADING -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Fetching from Codeforces&hellip;</p>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-icon"><i data-lucide="code-2"></i></div>
+            <span class="brand-name">CF Practice</span>
+            <span class="brand-tag">Pro</span>
+        </div>
+
+        <div class="sidebar-scroll">
+
+            <!-- User -->
+            <div class="s-block">
+                <div class="s-label" style="margin-top:14px;">Account</div>
+                <div class="user-card">
+                    <div class="field">
+                        <span class="field-icon"><i data-lucide="at-sign"></i></span>
+                        <input type="text" id="handleInput" value="nandan_19" placeholder="Codeforces handle"
+                            class="inp" />
+                    </div>
+                    <button id="fetchUserBtn" class="sync-btn">
+                        <i data-lucide="refresh-cw"></i>
+                        Sync solved problems
+                    </button>
+                    <label class="toggle-row" for="hideSolvedCheck">
+                        <input type="checkbox" id="hideSolvedCheck" checked class="ck" />
+                        <span>
+                            Hide solved
+                            <span id="solvedCount" class="count-pill"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="s-divider"></div>
+
+            <!-- Rating -->
+            <div class="s-block">
+                <div class="s-label">Rating Range</div>
+                <div class="rating-row">
+                    <input type="number" id="minRating" placeholder="Min" step="100" class="rating-inp" />
+                    <span class="rating-sep">–</span>
+                    <input type="number" id="maxRating" placeholder="Max" step="100" class="rating-inp" />
+                </div>
+            </div>
+
+            <div class="s-divider"></div>
+
+            <!-- Divisions -->
+            <div class="s-block">
+                <div class="s-label">Division</div>
+                <div class="div-grid" id="divFilters"></div>
+            </div>
+
+            <div class="s-divider"></div>
+
+            <!-- Index -->
+            <div class="s-block">
+                <div class="s-label">Problem Index</div>
+                <div class="idx-row" id="indexFilters"></div>
+            </div>
+
+            <div class="s-divider"></div>
+
+            <!-- Tags -->
+            <div class="s-block">
+                <div class="s-label">
+                    Topics
+                    <button id="clearTagsBtn" class="clear-btn">Clear all</button>
+                </div>
+                <div class="tag-wrap" id="tagFilters"></div>
+            </div>
+
+        </div><!-- /sidebar-scroll -->
+    </aside>
+
+    <!-- MAIN -->
+    <main id="main">
+
+        <!-- Header -->
+        <div id="header">
+            <div class="search-wrap">
+                <span class="search-icon"><i data-lucide="search"></i></span>
+                <input type="text" id="searchInput" placeholder="Search by name or ID  (e.g. 1900A)"
+                    class="search-inp" />
+            </div>
+            <div class="ctrl-row">
+                <select id="sortSelect" class="sort-select">
+                    <option value="newest">Newest</option>
+                    <option value="rating_asc">Rating ↑</option>
+                    <option value="rating_desc">Rating ↓</option>
+                    <option value="solved_desc">Popular</option>
+                </select>
+                <label class="toggle-hl" for="hideTagsCheck">
+                    <input type="checkbox" id="hideTagsCheck" checked class="ck" />
+                    Spoiler-free
+                </label>
+                <button id="randomBtn" class="random-btn">
+                    <i data-lucide="dices"></i>
+                    Random
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div id="statsBar">
+            <span><span id="resultCount">0</span> problems</span>
+            <span id="paginationInfoTop" class="page-info"></span>
+        </div>
+
+        <!-- Table -->
+        <div id="tableContainer">
+            <div class="tbl-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:72px;">ID</th>
+                            <th>Problem</th>
+                            <th style="width:82px;text-align:center;">Rating</th>
+                            <th style="width:100px;text-align:right;">Solved</th>
+                            <th style="width:32%;">Tags</th>
+                            <th style="width:48px;text-align:center;">↗</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="hidden">
+                <button id="prevBtn" class="pg-btn">
+                    <i data-lucide="chevron-left"></i> Prev
+                </button>
+                <span id="paginationInfo"></span>
+                <button id="nextBtn" class="pg-btn">
+                    Next <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let masterProblems = [], filteredProblems = [], contestMap = {}, userSolved = new Set();
+        const PER_PAGE = 50;
+        let page = 1;
+
+        const state = {
+            search: '', minRating: '', maxRating: '',
+            divs: new Set(), indexes: new Set(), tags: new Set(),
+            hideSolved: true, hideTags: true, sort: 'newest'
+        };
+
+        const DIVISIONS = ['Div. 1', 'Div. 2', 'Div. 3', 'Div. 4', 'Educational', 'Global'];
+        const INDEXES = ['A', 'B', 'C', 'D', 'E', 'F', 'G+'];
+        const TAGS = [
+            'dp', 'greedy', 'math', 'implementation', 'data structures', 'graphs',
+            'brute force', 'constructive algorithms', 'sortings', 'binary search',
+            'dfs and similar', 'trees', 'strings', 'number theory', 'combinatorics',
+            'geometry', 'bitmasks', 'two pointers', 'dsu', 'shortest paths', 'divide and conquer'
+        ];
+
+        lucide.createIcons();
+
+        /* ── Fetch ── */
+        async function initData() {
+            try {
+                const [pr, cr] = await Promise.all([
+                    fetch('https://codeforces.com/api/problemset.problems'),
+                    fetch('https://codeforces.com/api/contest.list')
+                ]);
+                if (!pr.ok || !cr.ok) throw new Error('CF API error');
+
+                const pd = await pr.json(), cd = await cr.json();
+                cd.result.forEach(c => { contestMap[c.id] = c.name; });
+
+                const stats = {};
+                pd.result.problemStatistics.forEach(s => { stats[`${s.contestId}-${s.index}`] = s.solvedCount; });
+
+                masterProblems = pd.result.problems.map(p => ({
+                    ...p,
+                    uid: `${p.contestId}${p.index}`,
+                    solvedCount: stats[`${p.contestId}-${p.index}`] || 0,
+                    contestName: contestMap[p.contestId] || `Contest ${p.contestId}`
+                }));
+
+                const h = document.getElementById('handleInput').value.trim();
+                if (h) await syncUser(h, false);
+
+                document.getElementById('loadingOverlay').classList.add('fade-out');
+                setupUI();
+                filter();
+            } catch (e) {
+                document.getElementById('loadingText').textContent = `Failed: ${e.message}. Refresh to retry.`;
+            }
+        }
+
+        async function syncUser(handle, loud = true) {
+            const btn = document.getElementById('fetchUserBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" style="width:12px;height:12px;animation:spin .7s linear infinite;"></i> Syncing…`;
+            btn.disabled = true;
+            lucide.createIcons();
+            try {
+                const res = await fetch(`https://codeforces.com/api/user.status?handle=${handle}`);
+                const d = await res.json();
+                if (d.status !== 'OK') throw new Error(d.comment || 'Handle not found');
+                userSolved.clear();
+                d.result.forEach(s => { if (s.verdict === 'OK') userSolved.add(`${s.problem.contestId}${s.problem.index}`); });
+                const pill = document.getElementById('solvedCount');
+                pill.textContent = userSolved.size;
+                filter();
+                if (loud) { btn.innerHTML = `<i data-lucide="check" style="width:12px;height:12px;"></i> Synced`; lucide.createIcons(); }
+            } catch (e) {
+                if (loud) alert(`Sync failed: ${e.message}`);
+            }
+            setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; lucide.createIcons(); }, 2000);
+        }
+
+        /* ── UI Setup ── */
+        function setupUI() {
+            // Divisions
+            const dc = document.getElementById('divFilters');
+            DIVISIONS.forEach(d => {
+                const b = document.createElement('button');
+                b.className = 'f-btn';
+                b.textContent = d === 'Educational' ? 'Edu' : d;
+                b.title = d;
+                b.onclick = () => { toggle(state.divs, d, b); filter(); };
+                dc.appendChild(b);
+            });
+
+            // Indexes
+            const ic = document.getElementById('indexFilters');
+            INDEXES.forEach(i => {
+                const b = document.createElement('button');
+                b.className = 'idx-btn';
+                b.textContent = i;
+                b.onclick = () => { toggle(state.indexes, i, b); filter(); };
+                ic.appendChild(b);
+            });
+
+            // Tags
+            const tc = document.getElementById('tagFilters');
+            TAGS.forEach(t => {
+                const b = document.createElement('button');
+                b.className = 't-chip';
+                b.textContent = t;
+                b.onclick = () => {
+                    toggle(state.tags, t, b, true);
+                    document.getElementById('clearTagsBtn').classList.toggle('show', state.tags.size > 0);
+                    filter();
+                };
+                tc.appendChild(b);
+            });
+
+            // Events
+            $('searchInput').addEventListener('input', e => { state.search = e.target.value; filter(); });
+            $('minRating').addEventListener('input', e => { state.minRating = e.target.value; filter(); });
+            $('maxRating').addEventListener('input', e => { state.maxRating = e.target.value; filter(); });
+            $('hideSolvedCheck').addEventListener('change', e => { state.hideSolved = e.target.checked; filter(); });
+            $('hideTagsCheck').addEventListener('change', e => { state.hideTags = e.target.checked; render(); });
+            $('sortSelect').addEventListener('change', e => { state.sort = e.target.value; filter(); });
+            $('fetchUserBtn').addEventListener('click', () => { const h = $('handleInput').value.trim(); if (h) syncUser(h); });
+            $('randomBtn').addEventListener('click', () => {
+                if (!filteredProblems.length) return alert('No problems match filters');
+                const p = filteredProblems[Math.floor(Math.random() * filteredProblems.length)];
+                window.open(`https://codeforces.com/contest/${p.contestId}/problem/${p.index}`, '_blank');
+            });
+            $('clearTagsBtn').addEventListener('click', () => {
+                state.tags.clear();
+                document.querySelectorAll('#tagFilters button').forEach(b => b.classList.remove('on'));
+                $('clearTagsBtn').classList.remove('show');
+                filter();
+            });
+            $('prevBtn').addEventListener('click', () => { if (page > 1) { page--; render(); $('tableContainer').scrollTop = 0; } });
+            $('nextBtn').addEventListener('click', () => {
+                const max = Math.ceil(filteredProblems.length / PER_PAGE);
+                if (page < max) { page++; render(); $('tableContainer').scrollTop = 0; }
+            });
+        }
+
+        function toggle(set, val, btn) {
+            if (set.has(val)) { set.delete(val); btn.classList.remove('on'); }
+            else { set.add(val); btn.classList.add('on'); }
+        }
+
+        /* ── Filter & Sort ── */
+        function filter() {
+            page = 1;
+            const q = state.search.toLowerCase();
+            const minR = state.minRating ? +state.minRating : null;
+            const maxR = state.maxRating ? +state.maxRating : null;
+
+            filteredProblems = masterProblems.filter(p => {
+                if (state.hideSolved && userSolved.has(p.uid)) return false;
+                if (q && !p.name.toLowerCase().includes(q) && !p.uid.toLowerCase().includes(q)) return false;
+                if (p.rating === undefined) { if (minR !== null || maxR !== null) return false; }
+                else {
+                    if (minR !== null && p.rating < minR) return false;
+                    if (maxR !== null && p.rating > maxR) return false;
+                }
+                if (state.indexes.size > 0) {
+                    const c = p.index.charAt(0).toUpperCase();
+                    if (!state.indexes.has(c) && !(state.indexes.has('G+') && c >= 'G')) return false;
+                }
+                if (state.divs.size > 0 && ![...state.divs].some(d => p.contestName.includes(d))) return false;
+                if (state.tags.size > 0 && ![...state.tags].every(t => p.tags.includes(t))) return false;
+                return true;
+            });
+
+            if (state.sort === 'rating_asc') filteredProblems.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+            else if (state.sort === 'rating_desc') filteredProblems.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            else if (state.sort === 'solved_desc') filteredProblems.sort((a, b) => b.solvedCount - a.solvedCount);
+
+            $('resultCount').textContent = filteredProblems.length.toLocaleString();
+            render();
+        }
+
+        function ratingClass(r) {
+            if (!r) return 'r-na';
+            if (r < 1200) return 'r-gray';
+            if (r < 1400) return 'r-green';
+            if (r < 1600) return 'r-teal';
+            if (r < 1900) return 'r-blue';
+            if (r < 2100) return 'r-purple';
+            if (r < 2300) return 'r-yellow';
+            if (r < 2400) return 'r-orange';
+            return 'r-red';
+        }
+
+        /* ── Render ── */
+        function render() {
+            const tbody = $('tableBody');
+            tbody.innerHTML = '';
+            const total = Math.ceil(filteredProblems.length / PER_PAGE);
+
+            if (!filteredProblems.length) {
+                tbody.innerHTML = `<tr><td colspan="6">
+                <div class="empty">
+                    <i data-lucide="search-x"></i>
+                    <p>No problems match your filters.<br>Try broadening the criteria.</p>
+                </div>
+            </td></tr>`;
+                $('pagination').classList.add('hidden');
+                $('paginationInfoTop').textContent = '';
+                lucide.createIcons();
+                return;
+            }
+
+            const slice = filteredProblems.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+            slice.forEach(p => {
+                const link = `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`;
+                const solved = userSolved.has(p.uid);
+
+                let tagsHtml = `<div class="tags-wrap${state.hideTags ? ' blur-tags' : ''}">`;
+                if (!p.tags.length) tagsHtml += `<span style="color:var(--text-4);font-size:11px;">—</span>`;
+                p.tags.slice(0, 4).forEach(t => { tagsHtml += `<span class="cf-tag">${t}</span>`; });
+                if (p.tags.length > 4) tagsHtml += `<span class="cf-tag-more">+${p.tags.length - 4}</span>`;
+                tagsHtml += '</div>';
+
+                const tr = document.createElement('tr');
+                if (solved) tr.classList.add('solved');
+                tr.innerHTML = `
+                <td><div class="pid">${solved ? '<i data-lucide="check-circle-2"></i>' : ''} ${p.uid}</div></td>
+                <td>
+                    <a href="${link}" target="_blank" class="pname" title="${p.name}">${p.name}</a>
+                    <span class="pcontest" title="${p.contestName}">${p.contestName}</span>
+                </td>
+                <td style="text-align:center;"><span class="rbadge ${ratingClass(p.rating)}">${p.rating || 'N/A'}</span></td>
+                <td style="text-align:right;"><span class="scount"><i data-lucide="users"></i>${p.solvedCount.toLocaleString()}</span></td>
+                <td>${tagsHtml}</td>
+                <td style="text-align:center;"><a href="${link}" target="_blank" class="open-btn"><i data-lucide="arrow-up-right"></i></a></td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+            $('pagination').classList.remove('hidden');
+            $('prevBtn').disabled = page === 1;
+            $('nextBtn').disabled = page === total;
+            const txt = `${page} / ${total}`;
+            $('paginationInfo').textContent = txt;
+            $('paginationInfoTop').textContent = txt;
+        }
+
+        function $(id) { return document.getElementById(id); }
+
+        initData();
+    </script>
+</body>
+
+</html>
