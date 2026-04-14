@@ -19,6 +19,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap"
         rel="stylesheet">
+    <!-- Anti-flash: apply theme before paint -->
+    <script>(function(){var t=localStorage.getItem('cf_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(t==='light')document.documentElement.setAttribute('data-theme','light');})();</script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* ── ENERGETIC MINIMALISM TOKENS (Catppuccin Mocha Inspired) ── */
@@ -80,6 +82,33 @@
 
             /* Snappy, energetic transition */
             --t: 120ms ease-out;
+        }
+
+        /* ── LIGHT MODE — Catppuccin Latte ──────────────────── */
+        [data-theme="light"] {
+            --bg: #eff1f5;
+            --surface: #e6e9ef;
+            --surface-2: #dce0e8;
+            --surface-3: #ccd0da;
+            --surface-4: #bcc0cc;
+            --border: #ccd0da;
+            --border-subtle: #dce0e8;
+            --text-1: #4c4f69;
+            --text-2: #5c5f77;
+            --text-3: #6c6f85;
+            --text-4: #8c8fa1;
+            --accent: #8839ef;
+            --accent-dim: rgba(136, 57, 239, 0.12);
+            --accent-border: rgba(136, 57, 239, 0.35);
+            --green: #40a02b;
+            --r-gray: #7c7f93;
+            --r-green: #40a02b;
+            --r-cyan: #209fb5;
+            --r-blue: #1e66f5;
+            --r-purple: #8839ef;
+            --r-yellow: #df8e1d;
+            --r-orange: #fe640b;
+            --r-red: #d20f39;
         }
 
         /* ── RESET ──────────────────────────────────────────── */
@@ -445,8 +474,8 @@
             top: 2px;
             width: 4px;
             height: 8px;
-            border: 2px solid #11111b;
-            /* Dark checkmark */
+            border: 2px solid var(--bg);
+            /* Adaptive checkmark */
             border-top: 0;
             border-left: 0;
             transform: rotate(45deg);
@@ -456,7 +485,7 @@
             font-size: 10px;
             font-weight: 700;
             font-family: var(--mono);
-            color: #11111b !important;
+            color: var(--bg) !important;
             background: var(--accent);
             border-radius: var(--radius-full);
             padding: 0 8px;
@@ -547,7 +576,7 @@
         .t-chip.on {
             background: var(--accent) !important;
             border-color: var(--accent) !important;
-            color: #11111b !important;
+            color: var(--bg) !important;
             font-weight: 600 !important;
         }
 
@@ -751,7 +780,7 @@
             padding: 9px 16px;
             font-size: 13px;
             font-weight: 700;
-            color: #11111b;
+            color: var(--bg);
             /* High contrast text */
             cursor: pointer;
             font-family: var(--font);
@@ -1046,7 +1075,7 @@
         .open-btn:hover {
             background: var(--accent);
             border-color: var(--accent);
-            color: #11111b;
+            color: var(--bg);
             transform: scale(1.05);
         }
 
@@ -1130,6 +1159,44 @@
             font-weight: 600;
             color: var(--text-3);
             font-family: var(--mono);
+        }
+
+        /* ── LOGO SVG adaptive colors ── */
+        .logo-mark rect { fill: var(--accent); }
+        .logo-mark path { stroke: var(--bg) !important; }
+        .logo-mark circle { fill: var(--bg) !important; }
+
+        /* ── THEME TOGGLE BUTTON ── */
+        .theme-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-2);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: var(--t);
+        }
+        .theme-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--surface-4);
+            color: var(--accent);
+        }
+        .theme-btn svg { width: 16px; height: 16px; }
+
+        /* ── SMOOTH THEME TRANSITION ── */
+        body, #sidebar, #main, #header, #statsBar,
+        .brand, .user-card, .tbl-card, .f-btn, .t-chip,
+        .idx-btn, .rating-inp, .inp, .sync-btn, .pg-btn,
+        .sort-select, .toggle-hl, .random-btn, .search-inp,
+        .open-btn, .sidebar-scroll, #sidebarOverlay,
+        .theme-btn, thead, td, th {
+            transition: background-color 0.22s ease, border-color 0.22s ease,
+                        color 0.22s ease, box-shadow 0.22s ease;
         }
 
         /* ── RESPONSIVE ─────────────────────────────────────── */
@@ -1332,6 +1399,9 @@
                     <input type="checkbox" id="hideTagsCheck" checked class="ck" />
                     Spoiler-free
                 </label>
+                <button id="themeBtn" class="theme-btn" title="Toggle light / dark">
+                    <i data-lucide="sun"></i>
+                </button>
                 <button id="randomBtn" class="random-btn">
                     <i data-lucide="dices"></i> Random
                 </button>
@@ -1637,6 +1707,35 @@
         $('sidebarCloseBtn').addEventListener('click', closeSidebar);
         $('sidebarOverlay').addEventListener('click', closeSidebar);
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+        /* ── Theme toggle ── */
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (theme === 'light') {
+                root.setAttribute('data-theme', 'light');
+                if (metaTheme) metaTheme.content = '#eff1f5';
+            } else {
+                root.removeAttribute('data-theme');
+                if (metaTheme) metaTheme.content = '#11111b';
+            }
+            const btn = $('themeBtn');
+            if (btn) {
+                btn.innerHTML = theme === 'light'
+                    ? '<i data-lucide="moon"></i>'
+                    : '<i data-lucide="sun"></i>';
+                lucide.createIcons();
+            }
+            localStorage.setItem('cf_theme', theme);
+        }
+
+        // Initial icon sync (theme already applied by anti-flash script)
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+        $('themeBtn').addEventListener('click', () => {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            applyTheme(isLight ? 'dark' : 'light');
+        });
 
         initData();
     </script>
