@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CF Practice Pro</title>
-    <meta name="description"
-        content="Codeforces problem browser with filters, spoiler-free tags, and live solve counts.">
+    <title>CF Practice — Codeforces Problem Explorer</title>
+    <meta name="description" content="Browse and filter every Codeforces problem by rating, division, and topic. Track your solved status, discover new challenges, and level up your competitive programming.">
+    <meta name="theme-color" content="#111113">
+    <meta property="og:title" content="CF Practice">
+    <meta property="og:description" content="Codeforces problem explorer with live filters, spoiler-free tags, and solved tracking.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M10 9L7 16L10 23' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 9L25 16L22 23' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='2.2' fill='%2393c5fd'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* ── TOKENS ─────────────────────────────────────────── */
@@ -154,49 +156,63 @@
             padding: 0 0 24px;
         }
 
-        /* Logo / brand row */
+        /* ── BRAND / LOGO ──────────────────────────────── */
         .brand {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 18px 16px 14px;
+            padding: 15px 16px 13px;
             border-bottom: 1px solid var(--border-subtle);
+            user-select: none;
         }
 
-        .brand-icon {
-            width: 30px;
-            height: 30px;
-            background: var(--surface-3);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .logo-mark {
+            width: 28px;
+            height: 28px;
             flex-shrink: 0;
         }
 
-        .brand-icon svg {
-            width: 15px;
-            height: 15px;
-            color: var(--accent);
+        .logo-mark svg {
+            width: 28px;
+            height: 28px;
+            display: block;
         }
 
-        .brand-name {
-            font-size: 14px;
-            font-weight: 600;
+        .wordmark {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            line-height: 1;
+        }
+
+        .wm-name {
+            font-size: 13px;
+            font-weight: 700;
             color: var(--text-1);
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
         }
 
-        .brand-tag {
-            margin-left: auto;
+        .wm-sub {
             font-size: 10px;
-            font-weight: 500;
-            color: var(--accent);
-            background: var(--accent-dim);
-            border: 1px solid var(--accent-border);
-            border-radius: var(--radius-full);
-            padding: 1px 7px;
+            font-weight: 400;
+            color: var(--text-3);
+            letter-spacing: 0.01em;
+        }
+
+        .brand-status {
+            margin-left: auto;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.18);
+            flex-shrink: 0;
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         /* Section block */
@@ -1056,9 +1072,19 @@
     <aside id="sidebar">
         <!-- Brand -->
         <div class="brand">
-            <div class="brand-icon"><i data-lucide="code-2"></i></div>
-            <span class="brand-name">CF Practice</span>
-            <span class="brand-tag">Pro</span>
+            <div class="logo-mark">
+                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="28" height="28" rx="7" fill="#2563eb"/>
+                    <path d="M10 8L7.5 14L10 20" stroke="white" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18 8L20.5 14L18 20" stroke="white" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="14" cy="14" r="2" fill="#93c5fd"/>
+                </svg>
+            </div>
+            <div class="wordmark">
+                <span class="wm-name">CF Practice</span>
+                <span class="wm-sub">Codeforces Explorer</span>
+            </div>
+            <div class="brand-status" title="API live"></div>
         </div>
 
         <div class="sidebar-scroll">
