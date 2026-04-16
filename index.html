@@ -31,7 +31,6 @@
             --surface: #181825;
             /* Mantle - Structural panels */
             --surface-2: #1e1e2e;
-            --surface-2-trans: rgba(30, 30, 46, 0.85);
             /* Base - Interactive elements */
             --surface-3: #313244;
             /* Surface0 - Hover states */
@@ -39,8 +38,8 @@
             /* Surface1 - Elevated borders */
 
             /* Borders */
-            --border: #313244;
-            --border-subtle: #1e1e2e;
+            --border: transparent;
+            --border-subtle: transparent;
 
             /* Typography */
             --text-1: #cdd6f4;
@@ -49,7 +48,7 @@
             /* Secondary */
             --text-3: #a6adc8;
             /* Tertiary */
-            --text-4: #9399b2;
+            --text-4: #7f849c;
             /* Quaternary/Muted */
 
             /* Brand Accent - Energetic Mauve */
@@ -90,11 +89,10 @@
             --bg: #eff1f5;
             --surface: #e6e9ef;
             --surface-2: #dce0e8;
-            --surface-2-trans: rgba(220, 224, 232, 0.85);
             --surface-3: #ccd0da;
             --surface-4: #bcc0cc;
-            --border: #ccd0da;
-            --border-subtle: #dce0e8;
+            --border: transparent;
+            --border-subtle: transparent;
             --text-1: #4c4f69;
             --text-2: #5c5f77;
             --text-3: #6c6f85;
@@ -203,7 +201,7 @@
 
         /* ── MOBILE MENU BTN ─────────────────────────────── */
         #menuBtn {
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             width: 36px;
@@ -235,11 +233,16 @@
             min-width: 260px;
             height: 100vh;
             background: var(--bg);
-            border-right: 1px solid var(--border);
+            border-right: none;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             flex-shrink: 0;
+            margin-left: 0;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.22s ease;
+        }
+        #sidebar.collapsed {
+            margin-left: -260px;
         }
 
         .sidebar-close {
@@ -331,6 +334,15 @@
             margin: 16px 20px 0;
         }
 
+        /* Detail accordions */
+        details > summary {
+            list-style: none; /* remove default arrow */
+            cursor: pointer;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        
         /* Section label */
         .s-label {
             font-size: 11px;
@@ -342,6 +354,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+        .s-label svg {
+            width: 14px;
+            height: 14px;
+            transition: transform var(--t);
+        }
+        details[open] > summary .s-label svg {
+            transform: rotate(180deg);
         }
 
         /* User card */
@@ -571,20 +591,20 @@
         .div-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 6px;
         }
 
         .idx-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
 
         /* Generic filter button */
         .f-btn {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-sm);
             padding: 6px 12px;
             font-size: 12px;
             font-weight: 500;
@@ -619,7 +639,7 @@
             justify-content: center;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-sm);
             font-size: 12px;
             font-weight: 600;
             font-family: var(--mono);
@@ -638,7 +658,7 @@
         .tag-wrap {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
 
         .t-chip {
@@ -696,7 +716,7 @@
         #header {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
-            padding: 16px 24px;
+            padding: 16px 24px 16px 12px;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -886,18 +906,21 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--text-3);
-            background: var(--surface-2-trans);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: var(--surface-2);
             border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
         tbody tr {
             border-bottom: 1px solid var(--border-subtle);
             transition: background var(--t);
+        }
+
+        tbody tr:nth-child(even):not(.solved):not(.attempted) {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        [data-theme="light"] tbody tr:nth-child(even):not(.solved):not(.attempted) {
+            background: rgba(0, 0, 0, 0.02);
         }
 
         tbody tr:last-child {
@@ -1067,9 +1090,9 @@
         }
 
         .tags-wrap.blur-tags .cf-tag {
-            filter: blur(5px);
-            opacity: 0.6;
-            transition: filter 0.4s ease, opacity 0.4s ease;
+            filter: blur(4px);
+            opacity: 0.5;
+            transition: filter 0.3s, opacity 0.3s;
             cursor: default;
         }
 
@@ -1232,7 +1255,7 @@
         .theme-btn svg { width: 16px; height: 16px; }
 
         /* ── SMOOTH THEME TRANSITION ── */
-        body, #sidebar, #main, #header, #statsBar,
+        body, #main, #header, #statsBar,
         .brand, .user-card, .tbl-card, .f-btn, .t-chip,
         .idx-btn, .rating-inp, .inp, .sync-btn, .pg-btn,
         .sort-select, .toggle-hl, .random-btn, .search-inp,
@@ -1258,6 +1281,7 @@
                 min-width: 280px;
             }
             #sidebar.open { transform: translateX(0); }
+            #sidebar.collapsed { margin-left: 0; }
 
             .sidebar-close { display: flex; }
             #menuBtn { display: flex; }
@@ -1413,27 +1437,40 @@
 
             <!-- Divisions -->
             <div class="s-block">
-                <div class="s-label">Division</div>
-                <div class="div-grid" id="divFilters"></div>
+                <details>
+                    <summary>
+                        <div class="s-label">Division <i data-lucide="chevron-down"></i></div>
+                    </summary>
+                    <div class="div-grid" id="divFilters"></div>
+                </details>
             </div>
 
             <div class="s-divider"></div>
 
             <!-- Index -->
             <div class="s-block">
-                <div class="s-label">Problem Index</div>
-                <div class="idx-row" id="indexFilters"></div>
+                <details>
+                    <summary>
+                        <div class="s-label">Problem Index <i data-lucide="chevron-down"></i></div>
+                    </summary>
+                    <div class="idx-row" id="indexFilters"></div>
+                </details>
             </div>
 
             <div class="s-divider"></div>
 
             <!-- Tags -->
             <div class="s-block">
-                <div class="s-label">
-                    Topics
-                    <button id="clearTagsBtn" class="clear-btn">Clear all</button>
-                </div>
-                <div class="tag-wrap" id="tagFilters"></div>
+                <details>
+                    <summary>
+                        <div class="s-label">
+                            Topics
+                            <button id="clearTagsBtn" class="clear-btn">Clear all</button>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                    </summary>
+                    <div class="tag-wrap" style="margin-top: 6px;" id="tagFilters"></div>
+                </details>
             </div>
 
         </div><!-- /sidebar-scroll -->
@@ -1447,7 +1484,7 @@
             <button id="menuBtn"><i data-lucide="menu"></i></button>
             <div class="search-wrap">
                 <span class="search-icon"><i data-lucide="search"></i></span>
-                <input type="text" id="searchInput" placeholder="Search by name or ID  (e.g. 1900A)"
+                <input type="text" id="searchInput" placeholder="Search by name or ID (e.g. 1900A)"
                     class="search-inp" />
             </div>
             <div class="ctrl-row">
@@ -1693,6 +1730,8 @@
             const minR = state.minRating ? +state.minRating : null;
             const maxR = state.maxRating ? +state.maxRating : null;
 
+            const qNoSpace = q.replace(/\s+/g, '');
+
             filteredProblems = masterProblems.filter(p => {
                 const uData = userData.get(p.uid);
                 const isSolved = uData ? uData.isSolved : false;
@@ -1700,7 +1739,13 @@
 
                 if (state.hideSolved && isSolved) return false;
                 if (state.hideUnsolved && isAttempted) return false;
-                if (q && !p.name.toLowerCase().includes(q) && !p.uid.toLowerCase().includes(q)) return false;
+                
+                if (q) {
+                    const matchesName = p.name.toLowerCase().includes(q);
+                    const matchesUid = p.uid.toLowerCase().includes(qNoSpace);
+                    const matchesTag = p.tags.some(t => t.toLowerCase().includes(q));
+                    if (!matchesName && !matchesUid && !matchesTag) return false;
+                }
                 if (p.rating === undefined) { if (minR !== null || maxR !== null) return false; }
                 else {
                     if (minR !== null && p.rating < minR) return false;
@@ -1816,18 +1861,27 @@
 
         function $(id) { return document.getElementById(id); }
 
-        /* ── Mobile sidebar ── */
-        function openSidebar() {
-            $('sidebar').classList.add('open');
-            $('sidebarOverlay').classList.add('show');
-            document.body.style.overflow = 'hidden';
+        /* ── Sidebar ── */
+        function isMobile() { return window.innerWidth <= 768; }
+
+        function toggleSidebar() {
+            if (isMobile()) {
+                $('sidebar').classList.add('open');
+                $('sidebarOverlay').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            } else {
+                $('sidebar').classList.toggle('collapsed');
+            }
         }
+
         function closeSidebar() {
-            $('sidebar').classList.remove('open');
-            $('sidebarOverlay').classList.remove('show');
-            document.body.style.overflow = '';
+            if (isMobile()) {
+                $('sidebar').classList.remove('open');
+                $('sidebarOverlay').classList.remove('show');
+                document.body.style.overflow = '';
+            }
         }
-        $('menuBtn').addEventListener('click', openSidebar);
+        $('menuBtn').addEventListener('click', toggleSidebar);
         $('sidebarCloseBtn').addEventListener('click', closeSidebar);
         $('sidebarOverlay').addEventListener('click', closeSidebar);
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
