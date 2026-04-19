@@ -1,28 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CF Practice — Codeforces Problem Explorer</title>
-    <meta name="description"
-        content="Browse and filter every Codeforces problem by rating, division, and topic. Track your solved status, discover new challenges, and level up your competitive programming.">
-    <meta name="theme-color" content="#11111b">
-    <meta property="og:title" content="CF Practice">
-    <meta property="og:description"
-        content="Codeforces problem explorer with live filters, spoiler-free tags, and solved tracking.">
-    <meta property="og:type" content="website">
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23cba6f7'/%3E%3Cpath d='M10 9L7 16L10 23' stroke='%2311111b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 9L25 16L22 23' stroke='%2311111b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='2.2' fill='%2311111b'/%3E%3C/svg%3E">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap"
-        rel="stylesheet">
+    <title>CF Analyze — Codeforces Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23cba6f7'/%3E%3Cpath d='M10 9L7 16L10 23' stroke='%2311111b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 9L25 16L22 23' stroke='%2311111b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='2.2' fill='%2311111b'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Anti-flash: apply theme before paint -->
     <script>(function(){var t=localStorage.getItem('cf_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(t==='light')document.documentElement.setAttribute('data-theme','light');})();</script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        
         /* ── ENERGETIC MINIMALISM TOKENS (Catppuccin Mocha Inspired) ── */
         :root {
             /* Backgrounds */
@@ -1469,642 +1457,700 @@
             #tableContainer { padding: 0 8px 12px; }
             tr { padding: 12px; gap: 4px 8px; }
         }
+    
+        
+        /* Dashboard specific styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 16px;
+            padding: 24px;
+            overflow-y: auto;
+            align-content: start;
+        }
+        .dash-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform var(--t), box-shadow var(--t);
+        }
+        .card-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-2);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 10px;
+        }
+        .card-header svg { width: 16px; height: 16px; color: var(--accent); }
+        
+        .stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-1);
+        }
+        .stat-lbl {
+            color: var(--text-3);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            width: 45%; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stat-val {
+            font-family: var(--mono);
+            font-weight: 600;
+            text-align: right;
+            flex-shrink: 0;
+            width: 15%;
+        }
+        
+        /* Bar track */
+        .bar-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            margin: 0 8px;
+        }
+        .bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--surface-2);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bar-fill.red { background: var(--r-red); }
+        .bar-fill.green { background: var(--r-green); }
+        .bar-fill.blue { background: var(--r-blue); }
+        .bar-fill.orange { background: var(--r-orange); }
 
+        #main-scroll {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+        
         /* Navigation Buttons */
         .nav-btn {
-            display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1;
-            background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
-            padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; text-decoration: none;
-            transition: var(--t); font-family: var(--font);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-2);
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--t);
+            font-family: var(--font);
         }
-        .nav-btn:hover { background: var(--surface-3); color: var(--text-1); }
-        .nav-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        .nav-btn:hover {
+            background: var(--surface-3);
+            color: var(--text-1);
+        }
+        .nav-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
         .nav-btn svg { width: 16px; height: 16px; }
+        
+        /* Additional stats sub-grid */
+        .sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .mega-val {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: var(--mono);
+            color: var(--text-1);
+        }
+        .mega-val.green { color: var(--r-green); }
+        .mega-val.red { color: var(--r-red); }
+        .mini-lbl {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-4);
+            letter-spacing: 0.05em;
+        }
+
+        #analyzeOverlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(17, 17, 27, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--text-2);
+        }
+        [data-theme="light"] #analyzeOverlay {
+            background: rgba(239, 241, 245, 0.8);
+        }
+        #analyzeOverlay.show {
+            display: flex;
+            animation: fadeIn var(--t);
+        }
+        
+        .list-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
     </style>
 </head>
-
 <body>
-
-    <!-- LOADING -->
-    <div id="loadingOverlay">
+    <div id="loadingOverlay" class="fade-out">
         <div class="spinner"></div>
-        <p id="loadingText">Fetching from Codeforces&hellip;</p>
+        <p id="loadingText">Initializing Analytics&hellip;</p>
     </div>
-
-    <!-- MOBILE SIDEBAR OVERLAY -->
+    
     <div id="sidebarOverlay"></div>
 
-    <!-- ZEN MODE EXIT HINT -->
-    <button id="zenExitBtn" class="zen-exit-hint">
-        Exit Zen Mode <kbd class="esc-key">Esc</kbd>
-    </button>
-
-    <!-- SIDEBAR -->
     <aside id="sidebar">
         <button class="sidebar-close" id="sidebarCloseBtn"><i data-lucide="x"></i></button>
-        <!-- Brand -->
         <div class="brand">
             <div class="logo-mark">
                 <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="28" height="28" rx="7" fill="#cba6f7" />
-                    <path d="M10 8L7.5 14L10 20" stroke="#11111b" stroke-width="2.1" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M18 8L20.5 14L18 20" stroke="#11111b" stroke-width="2.1" stroke-linecap="round"
-                        stroke-linejoin="round" />
+                    <path d="M10 8L7.5 14L10 20" stroke="#11111b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M18 8L20.5 14L18 20" stroke="#11111b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
                     <circle cx="14" cy="14" r="2" fill="#11111b" />
                 </svg>
             </div>
             <div class="wordmark">
                 <span class="wm-name">CF Practice</span>
-                <span class="wm-sub">Codeforces Explorer</span>
+                <span class="wm-sub">Analytics</span>
             </div>
-            <div class="brand-status" title="API live"></div>
         </div>
 
         <div class="sidebar-scroll">
-
-            <!-- Navigation -->
             <div class="s-block" style="display:flex; gap: 8px;">
-                <a href="index.html" class="nav-btn active"><i data-lucide="list"></i> Browse</a>
-                <a href="analyze.html" class="nav-btn"><i data-lucide="pie-chart"></i> Analyze</a>
+                <a href="index.html" class="nav-btn"><i data-lucide="list"></i> Browse</a>
+                <a href="analyze.html" class="nav-btn active"><i data-lucide="pie-chart"></i> Analyze</a>
             </div>
             
             <div class="s-divider"></div>
 
-            <!-- User -->
             <div class="s-block">
-                <div class="s-label" style="margin-top:4px;">Account</div>
-                <div class="user-card">
+                <div class="s-label" style="margin-top:4px;">Target Account</div>
+                <div class="user-card" style="align-items:stretch;">
                     <div class="field">
                         <span class="field-icon"><i data-lucide="at-sign"></i></span>
-                        <input type="text" id="handleInput" placeholder="Enter Codeforces handle" class="inp" />
+                        <input type="text" id="handleInput" placeholder="Codeforces handle" class="inp" />
                     </div>
-                    <button id="fetchUserBtn" class="sync-btn">
-                        <i data-lucide="refresh-cw"></i> Sync data
+                    <button id="fetchUserBtn" class="sync-btn" style="background:var(--accent); color:var(--bg); border-color:var(--accent);">
+                        <i data-lucide="zap"></i> Generate Report
                     </button>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <div class="stat-lbl">Subs</div>
-                            <div class="stat-val" id="statSubs">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-lbl">Solved</div>
-                            <div class="stat-val" id="statSolved">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-lbl">Unsolved</div>
-                            <div class="stat-val" id="statAttempted">0</div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-                        <label class="toggle-row" for="hideSolvedCheck">
-                            <input type="checkbox" id="hideSolvedCheck" checked class="ck" />
-                            <span>Hide solved</span>
-                        </label>
-                        <label class="toggle-row" for="hideUnsolvedCheck">
-                            <input type="checkbox" id="hideUnsolvedCheck" class="ck" />
-                            <span>Hide attempted (unsolved)</span>
-                        </label>
-                    </div>
                 </div>
             </div>
-
-            <div class="s-divider"></div>
-
-            <!-- Rating -->
-            <div class="s-block">
-                <div class="s-label">Rating Range</div>
-                <div class="rating-row">
-                    <input type="number" id="minRating" placeholder="Min" step="100" class="rating-inp" />
-                    <span class="rating-sep">–</span>
-                    <input type="number" id="maxRating" placeholder="Max" step="100" class="rating-inp" />
-                </div>
-            </div>
-
-            <div class="s-divider"></div>
-
-            <!-- Divisions -->
-            <div class="s-block">
-                <details>
-                    <summary>
-                        <div class="s-label">Division <i data-lucide="chevron-down"></i></div>
-                    </summary>
-                    <div class="div-grid" id="divFilters"></div>
-                </details>
-            </div>
-
-            <div class="s-divider"></div>
-
-            <!-- Index -->
-            <div class="s-block">
-                <details>
-                    <summary>
-                        <div class="s-label">Problem Index <i data-lucide="chevron-down"></i></div>
-                    </summary>
-                    <div class="idx-row" id="indexFilters"></div>
-                </details>
-            </div>
-
-            <div class="s-divider"></div>
-
-            <!-- Tags -->
-            <div class="s-block">
-                <details>
-                    <summary>
-                        <div class="s-label">
-                            Topics
-                            <button id="clearTagsBtn" class="clear-btn">Clear all</button>
-                            <i data-lucide="chevron-down"></i>
-                        </div>
-                    </summary>
-                    <div class="tag-wrap" style="margin-top: 6px;" id="tagFilters"></div>
-                </details>
-            </div>
-
-        </div><!-- /sidebar-scroll -->
+        </div>
     </aside>
 
-    <!-- MAIN -->
     <main id="main">
-
-        <!-- Header -->
         <div id="header">
             <button id="menuBtn"><i data-lucide="menu"></i></button>
-            <div class="search-wrap">
-                <span class="search-icon"><i data-lucide="search"></i></span>
-                <input type="text" id="searchInput" placeholder="Search by name or ID (e.g. 1900A)"
-                    class="search-inp" />
+            <div style="flex:1; display:flex; align-items:center; gap:12px;">
+                <i data-lucide="bar-chart-2" style="color:var(--accent);"></i>
+                <span style="font-weight:600; font-size:15px;" id="reportTitle">Profile Analytics</span>
             </div>
             <div class="ctrl-row">
-                <select id="sortSelect" class="sort-select">
-                    <option value="newest">Newest</option>
-                    <option value="rating_asc">Rating ↑</option>
-                    <option value="rating_desc">Rating ↓</option>
-                    <option value="solved_desc">Popular</option>
-                    <option value="attempts_desc">Most Failed</option>
-                </select>
-                <label class="toggle-hl" for="hideTagsCheck">
-                    <input type="checkbox" id="hideTagsCheck" checked class="ck" />
-                    Spoiler-free
-                </label>
                 <button id="themeBtn" class="theme-btn" title="Toggle light / dark">
                     <i data-lucide="sun"></i>
                 </button>
-                <button id="randomBtn" class="random-btn">
-                    <i data-lucide="dices"></i> Random
-                </button>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div id="statsBar">
-            <span><span id="resultCount">0</span> problems</span>
-            <span id="paginationInfoTop" class="page-info"></span>
-        </div>
-
-        <!-- Table -->
-        <div id="tableContainer">
-            <div class="tbl-card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:72px;">ID</th>
-                            <th>Problem</th>
-                            <th style="width:82px;text-align:center;">Rating</th>
-                            <th style="width:100px;text-align:right;">Solved</th>
-                            <th style="width:32%;">Tags</th>
-                            <th style="width:56px;text-align:center;">↗</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+        <div id="main-scroll">
+            <div id="analyzeOverlay">
+                <div class="spinner" style="border-top-color:var(--r-blue)"></div>
+                <div style="font-family:var(--mono); font-size:13px; font-weight:600; margin-top:8px;" id="olText">Fetching user data...</div>
             </div>
-
-            <!-- Pagination -->
-            <div id="pagination" class="hidden">
-                <button id="prevBtn" class="pg-btn">
-                    <i data-lucide="chevron-left"></i> Prev
-                </button>
-                <span id="paginationInfo"></span>
-                <button id="nextBtn" class="pg-btn">
-                    Next <i data-lucide="chevron-right"></i>
-                </button>
+                
+            <div class="dashboard-grid" id="dashGrid">
+                <!-- Cards will be injected via JS -->
             </div>
         </div>
-
     </main>
 
+    <!-- JS LOGIC PLACEHOLDER -->
     <script>
-        let masterProblems = [], filteredProblems = [], contestMap = {};
-        let userData = new Map();
-        let userStats = { subs: 0, solved: 0, unsolved: 0 };
-        const PER_PAGE = 50;
-        let page = 1;
 
-        const state = {
-            search: '', minRating: '', maxRating: '',
-            divs: new Set(), excludeDivs: new Set(),
-            indexes: new Set(), excludeIndexes: new Set(),
-            tags: new Set(), excludeTags: new Set(),
-            hideSolved: true, hideTags: true, sort: 'newest',
-            hideUnsolved: false
+        const API_BASE = "https://codeforces.com/api";
+
+        const els = {
+            handleInput: document.getElementById('handleInput'),
+            fetchBtn: document.getElementById('fetchUserBtn'),
+            overlay: document.getElementById('analyzeOverlay'),
+            olText: document.getElementById('olText'),
+            grid: document.getElementById('dashGrid'),
+            themeBtn: document.getElementById('themeBtn'),
+            reportTitle: document.getElementById('reportTitle')
         };
 
-        const DIVISIONS = ['Div. 1', 'Div. 2', 'Div. 3', 'Div. 4', 'Educational', 'Global'];
-        const INDEXES = ['A', 'B', 'C', 'D', 'E', 'F', 'G+'];
-        const TAGS = [
-            'dp', 'greedy', 'math', 'implementation', 'data structures', 'graphs',
-            'brute force', 'constructive algorithms', 'sortings', 'binary search',
-            'dfs and similar', 'trees', 'strings', 'number theory', 'combinatorics',
-            'geometry', 'bitmasks', 'two pointers', 'dsu', 'shortest paths', 'divide and conquer'
-        ];
-
-        lucide.createIcons();
-
-        /* ── Fetch ── */
-        async function initData() {
-            try {
-                const [pr, cr] = await Promise.all([
-                    fetch('https://codeforces.com/api/problemset.problems'),
-                    fetch('https://codeforces.com/api/contest.list')
-                ]);
-                if (!pr.ok || !cr.ok) throw new Error('CF API error');
-
-                const pd = await pr.json(), cd = await cr.json();
-                cd.result.forEach(c => { contestMap[c.id] = c.name; });
-
-                const stats = {};
-                pd.result.problemStatistics.forEach(s => { stats[`${s.contestId}-${s.index}`] = s.solvedCount; });
-
-                masterProblems = pd.result.problems.map(p => ({
-                    ...p,
-                    uid: `${p.contestId}${p.index}`,
-                    solvedCount: stats[`${p.contestId}-${p.index}`] || 0,
-                    contestName: contestMap[p.contestId] || `Contest ${p.contestId}`
-                }));
-
-                const savedHandle = localStorage.getItem('cf_handle');
-                if (savedHandle) {
-                    document.getElementById('handleInput').value = savedHandle;
-                    await syncUser(savedHandle, false);
-                }
-
-                document.getElementById('loadingOverlay').classList.add('fade-out');
-                setupUI();
-                filter();
-            } catch (e) {
-                document.getElementById('loadingText').textContent = `Failed: ${e.message}. Refresh to retry.`;
-            }
-        }
-
-        async function syncUser(handle, loud = true) {
-            const btn = document.getElementById('fetchUserBtn');
-            const orig = btn.innerHTML;
-            btn.innerHTML = `<i data-lucide="loader-2" style="width:14px;height:14px;animation:spin .7s linear infinite;"></i> Syncing…`;
-            btn.disabled = true;
+        // Theme and Sidebar toggle logic
+        let isDark = localStorage.getItem('cf_theme') === 'dark';
+        function applyTheme() {
+            document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+            els.themeBtn.innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
             lucide.createIcons();
+            localStorage.setItem('cf_theme', isDark ? 'dark' : 'light');
+        }
+        applyTheme();
+        els.themeBtn.addEventListener('click', () => { isDark = !isDark; applyTheme(); });
+
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebarOverlay");
+        const menuBtn = document.getElementById("menuBtn");
+        const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+
+        function openSidebar() {
+            sidebar.classList.add("open");
+            sidebarOverlay.classList.add("show");
+        }
+        function closeSidebar() {
+            sidebar.classList.remove("open");
+            sidebarOverlay.classList.remove("show");
+        }
+        menuBtn.addEventListener("click", openSidebar);
+        sidebarCloseBtn.addEventListener("click", closeSidebar);
+        sidebarOverlay.addEventListener("click", closeSidebar);
+
+
+        // Local Storage Handle
+        const cachedHandle = localStorage.getItem('cf_handle');
+        if (cachedHandle) {
+            els.handleInput.value = cachedHandle;
+        }
+
+        async function cfGet(method, params = {}) {
+            let url = new URL(`${API_BASE}/${method}`);
+            url.searchParams.append("lang", "en");
+            for (let [k,v] of Object.entries(params)) url.searchParams.append(k, v);
             try {
-                const res = await fetch(`https://codeforces.com/api/user.status?handle=${handle}`);
-                const d = await res.json();
-                if (d.status !== 'OK') throw new Error(d.comment || 'Handle not found');
-                
-                userData.clear();
-                userStats = { subs: 0, solved: 0, unsolved: 0 };
-                
-                d.result.forEach(s => {
-                    if (!s.problem || !s.problem.contestId) return;
-                    userStats.subs++;
-                    const uid = `${s.problem.contestId}${s.problem.index}`;
-                    
-                    if (!userData.has(uid)) {
-                        userData.set(uid, { isSolved: false, subs: 0, failedSubs: 0, verdicts: {} });
-                    }
-                    const data = userData.get(uid);
-                    data.subs++;
-                    
-                    if (s.verdict === 'OK') {
-                        data.isSolved = true;
-                    } else if (s.verdict !== 'COMPILATION_ERROR') {
-                        data.failedSubs++;
-                        data.verdicts[s.verdict] = (data.verdicts[s.verdict] || 0) + 1;
-                    }
-                });
-
-                for (const data of userData.values()) {
-                    if (data.isSolved) userStats.solved++;
-                    else userStats.unsolved++;
-                }
-
-                document.getElementById('statSubs').textContent = userStats.subs;
-                document.getElementById('statSolved').textContent = userStats.solved;
-                document.getElementById('statAttempted').textContent = userStats.unsolved;
-                
-                localStorage.setItem('cf_handle', handle);
-                filter();
-                if (loud) { btn.innerHTML = `<i data-lucide="check" style="width:14px;height:14px;"></i> Synced`; lucide.createIcons(); }
+                let r = await fetch(url.toString());
+                let data = await r.json();
+                if (data.status === "OK") return data.result;
+                throw new Error(data.comment || "Unknown CF Error");
             } catch (e) {
-                if (loud) alert(`Sync failed: ${e.message}`);
-            }
-            setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; lucide.createIcons(); }, 2000);
-        }
-
-        /* ── UI Setup ── */
-        function setupUI() {
-            const dc = document.getElementById('divFilters');
-            DIVISIONS.forEach(d => {
-                const b = document.createElement('button');
-                b.className = 'f-btn';
-                b.textContent = d === 'Educational' ? 'Edu' : d;
-                b.title = d;
-                b.onclick = () => { toggle(state.divs, state.excludeDivs, d, b); filter(); };
-                dc.appendChild(b);
-            });
-
-            const ic = document.getElementById('indexFilters');
-            INDEXES.forEach(i => {
-                const b = document.createElement('button');
-                b.className = 'idx-btn';
-                b.textContent = i;
-                b.onclick = () => { toggle(state.indexes, state.excludeIndexes, i, b); filter(); };
-                ic.appendChild(b);
-            });
-
-            const tc = document.getElementById('tagFilters');
-            TAGS.forEach(t => {
-                const b = document.createElement('button');
-                b.className = 't-chip';
-                b.textContent = t;
-                b.onclick = () => {
-                    toggle(state.tags, state.excludeTags, t, b);
-                    document.getElementById('clearTagsBtn').classList.toggle('show', state.tags.size > 0 || state.excludeTags.size > 0);
-                    filter();
-                };
-                tc.appendChild(b);
-            });
-
-            $('searchInput').addEventListener('input', e => { state.search = e.target.value; filter(); });
-            $('minRating').addEventListener('input', e => { state.minRating = e.target.value; filter(); });
-            $('maxRating').addEventListener('input', e => { state.maxRating = e.target.value; filter(); });
-            $('hideSolvedCheck').addEventListener('change', e => { state.hideSolved = e.target.checked; filter(); });
-            $('hideUnsolvedCheck').addEventListener('change', e => { state.hideUnsolved = e.target.checked; filter(); });
-            $('hideTagsCheck').addEventListener('change', e => { state.hideTags = e.target.checked; render(); });
-            $('sortSelect').addEventListener('change', e => { state.sort = e.target.value; filter(); });
-            $('fetchUserBtn').addEventListener('click', () => { const h = $('handleInput').value.trim(); if (h) syncUser(h); });
-            $('randomBtn').addEventListener('click', () => {
-                if (!filteredProblems.length) return alert('No problems match filters');
-                const p = filteredProblems[Math.floor(Math.random() * filteredProblems.length)];
-                window.open(`https://codeforces.com/contest/${p.contestId}/problem/${p.index}`, '_blank');
-            });
-            $('clearTagsBtn').addEventListener('click', () => {
-                state.tags.clear();
-                state.excludeTags.clear();
-                document.querySelectorAll('#tagFilters button').forEach(b => {
-                    b.classList.remove('on');
-                    b.classList.remove('exclude');
-                });
-                $('clearTagsBtn').classList.remove('show');
-                filter();
-            });
-            $('prevBtn').addEventListener('click', () => { if (page > 1) { page--; render(); $('tableContainer').scrollTop = 0; } });
-            $('nextBtn').addEventListener('click', () => {
-                const max = Math.ceil(filteredProblems.length / PER_PAGE);
-                if (page < max) { page++; render(); $('tableContainer').scrollTop = 0; }
-            });
-        }
-
-        function toggle(includedSet, excludedSet, val, btn) {
-            if (includedSet.has(val)) {
-                includedSet.delete(val);
-                excludedSet.add(val);
-                btn.classList.remove('on');
-                btn.classList.add('exclude');
-            } else if (excludedSet.has(val)) {
-                excludedSet.delete(val);
-                btn.classList.remove('exclude');
-            } else {
-                includedSet.add(val);
-                btn.classList.add('on');
+                console.error(`[API] ${method}:`, e);
+                return null;
             }
         }
 
-        /* ── Filter & Sort ── */
-        function filter() {
-            page = 1;
-            const q = state.search.toLowerCase();
-            const minR = state.minRating ? +state.minRating : null;
-            const maxR = state.maxRating ? +state.maxRating : null;
-
-            const qNoSpace = q.replace(/\s+/g, '');
-
-            filteredProblems = masterProblems.filter(p => {
-                const uData = userData.get(p.uid);
-                const isSolved = uData ? uData.isSolved : false;
-                const isAttempted = uData ? (!uData.isSolved) : false;
-
-                if (state.hideSolved && isSolved) return false;
-                if (state.hideUnsolved && isAttempted) return false;
-                
-                if (q) {
-                    const matchesName = p.name.toLowerCase().includes(q);
-                    const matchesUid = p.uid.toLowerCase().includes(qNoSpace);
-                    const matchesTag = p.tags.some(t => t.toLowerCase().includes(q));
-                    if (!matchesName && !matchesUid && !matchesTag) return false;
-                }
-                if (p.rating === undefined) { if (minR !== null || maxR !== null) return false; }
-                else {
-                    if (minR !== null && p.rating < minR) return false;
-                    if (maxR !== null && p.rating > maxR) return false;
-                }
-                if (state.indexes.size > 0) {
-                    const c = p.index.charAt(0).toUpperCase();
-                    if (!state.indexes.has(c) && !(state.indexes.has('G+') && c >= 'G')) return false;
-                }
-                if (state.excludeIndexes.size > 0) {
-                    const c = p.index.charAt(0).toUpperCase();
-                    if (state.excludeIndexes.has(c) || (state.excludeIndexes.has('G+') && c >= 'G')) return false;
-                }
-                
-                if (state.divs.size > 0 && ![...state.divs].some(d => p.contestName.includes(d))) return false;
-                if (state.excludeDivs.size > 0 && [...state.excludeDivs].some(d => p.contestName.includes(d))) return false;
-                
-                if (state.tags.size > 0 && ![...state.tags].every(t => p.tags.includes(t))) return false;
-                if (state.excludeTags.size > 0 && [...state.excludeTags].some(t => p.tags.includes(t))) return false;
-                
-                return true;
-            });
-
-            if (state.sort === 'rating_asc') filteredProblems.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-            else if (state.sort === 'rating_desc') filteredProblems.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-            else if (state.sort === 'solved_desc') filteredProblems.sort((a, b) => b.solvedCount - a.solvedCount);
-            else if (state.sort === 'attempts_desc') {
-                filteredProblems.sort((a, b) => {
-                    const aFails = userData.has(a.uid) ? userData.get(a.uid).failedSubs : 0;
-                    const bFails = userData.has(b.uid) ? userData.get(b.uid).failedSubs : 0;
-                    return bFails - aFails;
-                });
-            }
-
-            $('resultCount').textContent = filteredProblems.length.toLocaleString();
-            render();
+        function hms(sec) {
+            if (sec == null || isNaN(sec)) return "N/A";
+            let h = Math.floor(sec/3600), r = sec%3600, m = Math.floor(r/60), s = r%60;
+            if (h>0) return `${h}h ${m}m ${s}s`;
+            if (m>0) return `${m}m ${s}s`;
+            return `${s}s`;
         }
 
-        function ratingClass(r) {
-            if (!r) return 'r-na';
-            if (r < 1200) return 'r-gray';
-            if (r < 1400) return 'r-green';
-            if (r < 1600) return 'r-teal';
-            if (r < 1900) return 'r-blue';
-            if (r < 2100) return 'r-purple';
-            if (r < 2300) return 'r-yellow';
-            if (r < 2400) return 'r-orange';
-            return 'r-red';
+        function statRow(lbl, val) {
+            return `<div class="stat-row"><div class="stat-lbl">${lbl}</div><div class="stat-val">${val}</div></div>`;
         }
 
-        /* ── Render ── */
-        function render() {
-            const tbody = $('tableBody');
-            tbody.innerHTML = '';
-            const total = Math.ceil(filteredProblems.length / PER_PAGE);
-
-            if (!filteredProblems.length) {
-                tbody.innerHTML = `<tr><td colspan="6">
-                <div class="empty">
-                    <i data-lucide="search-x"></i>
-                    <p>No problems match your filters.<br>Try broadening the criteria.</p>
+        function barRow(lbl, val, total, txt, color="accent") {
+            let pct = total === 0 ? 0 : (val/total)*100;
+            return `
+            <div class="stat-row">
+                <div class="stat-lbl">${lbl}</div>
+                <div class="bar-wrap">
+                    <div class="bar-track">
+                        <div class="bar-fill ${color}" style="width: 0%" data-target="${pct}%"></div>
+                    </div>
                 </div>
-            </td></tr>`;
-                $('pagination').classList.add('hidden');
-                $('paginationInfoTop').textContent = '';
-                lucide.createIcons();
+                <div class="stat-val" style="width:55px;">${txt}</div>
+            </div>`;
+        }
+        
+        function listGroup(items) {
+            let html = '<div class="list-group">';
+            for(let it of items) html += `<div class="list-item"><span>${it.left}</span><span style="font-family:var(--mono);font-weight:600;">${it.right}</span></div>`;
+            return html + '</div>';
+        }
+
+        function makeCard(title, icon, content, span=1) {
+            let div = document.createElement("div");
+            div.className = "dash-card";
+            if (span > 1) div.style.gridColumn = `span ${span}`;
+            div.innerHTML = `
+                <div class="card-header"><i data-lucide="${icon}"></i> ${title}</div>
+                <div style="display:flex; flex-direction:column; gap:8px; flex:1;">${content}</div>
+            `;
+            return div;
+        }
+
+        // Remove loading overlay
+        setTimeout(() => {
+            const l = document.getElementById('loadingOverlay');
+            if(l) { l.style.opacity="0"; setTimeout(()=>l.remove(), 250); }
+        }, 300);
+
+        els.fetchBtn.addEventListener('click', async () => {
+            let h = els.handleInput.value.trim();
+            if(!h) return;
+            localStorage.setItem('cf_handle', h);
+            closeSidebar();
+
+            els.overlay.classList.add('show');
+            els.grid.innerHTML = '';
+            
+            els.olText.textContent = `Fetching user info (${h})...`;
+            const userInfo = await cfGet("user.info", {handles: h});
+            if (!userInfo) {
+                els.olText.textContent = "Error: Invalid handle or API unreachable.";
+                setTimeout(() => els.overlay.classList.remove('show'), 2000);
                 return;
             }
 
-            const slice = filteredProblems.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-            slice.forEach(p => {
-                const link = `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`;
-                const uData = userData.get(p.uid);
-                const solved = uData && uData.isSolved;
-                const attempted = uData && !uData.isSolved;
+            els.olText.textContent = `Fetching submissions...`;
+            const subs = await cfGet("user.status", {handle: h, from: 1, count: 15000}) || [];
 
-                let tagsHtml = `<div class="tags-wrap${state.hideTags ? ' blur-tags' : ''}">`;
-                if (!p.tags.length) tagsHtml += `<span style="color:var(--text-4);font-size:11px;">—</span>`;
-                p.tags.slice(0, 4).forEach(t => { tagsHtml += `<span class="cf-tag">${t}</span>`; });
-                if (p.tags.length > 4) tagsHtml += `<span class="cf-tag-more">+${p.tags.length - 4}</span>`;
-                tagsHtml += '</div>';
+            els.olText.textContent = `Fetching rating history...`;
+            const ratings = await cfGet("user.rating", {handle: h}) || [];
 
-                const tr = document.createElement('tr');
-                if (solved) tr.classList.add('solved');
-                else if (attempted) tr.classList.add('attempted');
-
-                let idIconHtml = '';
-                let statusPill = '';
-                if (solved) {
-                    idIconHtml = '<i data-lucide="check-circle-2"></i>';
-                    statusPill = `<span class="cf-tag" style="background: rgba(166, 227, 161, 0.15); color: var(--r-green); border-color: rgba(166, 227, 161, 0.3); font-size: 10px; padding: 1px 6px;">in ${uData.subs} subs</span>`;
-                } else if (attempted) {
-                    idIconHtml = '<i data-lucide="x-circle" style="color: var(--r-orange);"></i>';
-                    statusPill = `<span class="cf-tag" title="Failed Submissions: ${uData.failedSubs}" style="background: rgba(250, 179, 135, 0.15); color: var(--r-orange); border-color: rgba(250, 179, 135, 0.3); font-size: 10px; padding: 1px 6px;">${uData.failedSubs} fails</span>`;
-                }
-
-                tr.innerHTML = `
-                <td><div class="pid">${idIconHtml} ${p.uid}</div></td>
-                <td>
-                    <div style="display:flex; align-items:center; gap: 8px;">
-                        <a href="${link}" target="_blank" class="pname" style="max-width: none;" title="${p.name}">${p.name}</a>
-                        ${statusPill}
-                    </div>
-                    <span class="pcontest" title="${p.contestName}">${p.contestName}</span>
-                </td>
-                <td style="text-align:center;"><span class="rbadge ${ratingClass(p.rating)}">${p.rating || 'N/A'}</span></td>
-                <td style="text-align:right;"><span class="scount"><i data-lucide="users"></i>${p.solvedCount.toLocaleString()}</span></td>
-                <td>${tagsHtml}</td>
-                <td style="text-align:center;"><a href="${link}" target="_blank" class="open-btn"><i data-lucide="arrow-up-right"></i></a></td>
-            `;
-                tbody.appendChild(tr);
-            });
-
-            lucide.createIcons();
-            $('pagination').classList.remove('hidden');
-            $('prevBtn').disabled = page === 1;
-            $('nextBtn').disabled = page === total;
-            const txt = `${page} / ${total}`;
-            $('paginationInfo').textContent = txt;
-            $('paginationInfoTop').textContent = txt;
-        }
-
-        function $(id) { return document.getElementById(id); }
-
-        /* ── Sidebar ── */
-        function isMobile() { return window.innerWidth <= 768; }
-
-        function toggleSidebar() {
-            if (isMobile()) {
-                $('sidebar').classList.add('open');
-                $('sidebarOverlay').classList.add('show');
-                document.body.style.overflow = 'hidden';
-            } else {
-                $('sidebar').classList.toggle('collapsed');
-                document.body.classList.toggle('zen-mode');
-            }
-        }
-
-        function closeSidebar() {
-            if (isMobile()) {
-                $('sidebar').classList.remove('open');
-                $('sidebarOverlay').classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        }
-        $('menuBtn').addEventListener('click', toggleSidebar);
-        $('sidebarCloseBtn').addEventListener('click', closeSidebar);
-        $('sidebarOverlay').addEventListener('click', closeSidebar);
-        $('zenExitBtn').addEventListener('click', () => {
-            $('sidebar').classList.remove('collapsed');
-            document.body.classList.remove('zen-mode');
-        });
-        document.addEventListener('keydown', e => { 
-            if (e.key === 'Escape') {
-                closeSidebar();
-                if (document.body.classList.contains('zen-mode')) {
-                    $('sidebar').classList.remove('collapsed');
-                    document.body.classList.remove('zen-mode');
-                }
-            } 
-        });
-
-        /* ── Theme toggle ── */
-        function applyTheme(theme) {
-            const root = document.documentElement;
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (theme === 'light') {
-                root.setAttribute('data-theme', 'light');
-                if (metaTheme) metaTheme.content = '#eff1f5';
-            } else {
-                root.removeAttribute('data-theme');
-                if (metaTheme) metaTheme.content = '#11111b';
-            }
-            const btn = $('themeBtn');
-            if (btn) {
-                btn.innerHTML = theme === 'light'
-                    ? '<i data-lucide="moon"></i>'
-                    : '<i data-lucide="sun"></i>';
+            els.olText.textContent = `Crunching numbers...`;
+            setTimeout(() => {
+                analyzeAndRender(userInfo[0], subs, ratings);
+                els.overlay.classList.remove('show');
                 lucide.createIcons();
-            }
-            localStorage.setItem('cf_theme', theme);
-        }
-
-        // Initial icon sync (theme already applied by anti-flash script)
-        applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-
-        $('themeBtn').addEventListener('click', () => {
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            applyTheme(isLight ? 'dark' : 'light');
+                // trigger bar animations
+                setTimeout(() => {
+                    document.querySelectorAll('.bar-fill').forEach(fill => {
+                        fill.style.width = fill.getAttribute('data-target');
+                    });
+                }, 50);
+            }, 100);
         });
 
-        initData();
+        // ================= MATH & ANALYSIS ===================
+
+        function analyzeAndRender(user, subs, ratings) {
+            els.reportTitle.textContent = `${user.handle}'s Analytics`;
+            
+            // ───── 1. User Profile ─────
+            let regEpoch = user.registrationTimeSeconds;
+            let regD = regEpoch ? new Date(regEpoch*1000).toISOString().split('T')[0] : "N/A";
+            let daysA = regEpoch ? Math.floor((Date.now() - regEpoch*1000)/86400000) : 0;
+            
+            let profHtml = `
+                <div class="sub-grid" style="margin-bottom:8px;">
+                    <div><div class="mini-lbl">Current Rating</div><div class="mega-val" style="color:var(--accent)">${user.rating || 0}</div><div style="font-size:12px;color:var(--text-3);text-transform:capitalize">${user.rank||"Unrated"}</div></div>
+                    <div><div class="mini-lbl">Max Rating</div><div class="mega-val ${user.maxRating>user.rating?'green':''}">${user.maxRating || 0}</div><div style="font-size:12px;color:var(--text-3);text-transform:capitalize">${user.maxRank||"Unrated"}</div></div>
+                </div>
+                ${statRow("Contribution", user.contribution || 0)}
+                ${statRow("Friends Count", user.friendOfCount || 0)}
+                ${statRow("Registered", regD)}
+                ${statRow("Account Age", `${daysA} days`)}
+            `;
+            els.grid.appendChild(makeCard("Profile Overview", "user", profHtml));
+
+
+            // ───── 2. Submission Overview ─────
+            let totalS = subs.length;
+            let vMap = { "OK":"AC", "WRONG_ANSWER":"WA", "TIME_LIMIT_EXCEEDED":"TLE", "MEMORY_LIMIT_EXCEEDED":"MLE", "RUNTIME_ERROR":"RE", "COMPILATION_ERROR":"CE", "FAILED":"FAIL", "CHALLENGED":"HACKED", "PARTIAL":"PARTIAL" };
+            let vColors = { "OK":"green", "WRONG_ANSWER":"red", "TIME_LIMIT_EXCEEDED":"orange", "MEMORY_LIMIT_EXCEEDED":"orange", "RUNTIME_ERROR":"red", "COMPILATION_ERROR":"blue" };
+            
+            let verdicts = {};
+            subs.forEach(s => { let v=s.verdict; verdicts[v] = (verdicts[v]||0)+1; });
+            
+            let subHtml = `
+                <div class="sub-grid" style="margin-bottom:8px;">
+                    <div><div class="mini-lbl">Total Subs</div><div class="mega-val">${totalS}</div></div>
+                    <div><div class="mini-lbl">AC Subs</div><div class="mega-val green">${verdicts["OK"]||0}</div></div>
+                </div>
+            `;
+            let sortedV = Object.entries(verdicts).sort((a,b)=>b[1]-a[1]);
+            sortedV.forEach(([v, c]) => {
+                let lbl = vMap[v] || v;
+                let pct = ((c/totalS)*100).toFixed(1);
+                subHtml += barRow(lbl, c, totalS, `${c} <span style="color:var(--text-4);font-size:11px">(${pct}%)</span>`, vColors[v]||"accent");
+            });
+            els.grid.appendChild(makeCard("Verdicts", "pie-chart", subHtml));
+
+
+            // ───── 3. Problems Solved ─────
+            let acc = subs.filter(s => s.verdict === "OK").sort((a,b)=>a.creationTimeSeconds - b.creationTimeSeconds);
+            let sSet = new Set();
+            let firstAc = {};
+            let subCountPerQ = {};
+            acc.forEach(s => {
+                let pid = s.problem.contestId + "-" + s.problem.index;
+                sSet.add(pid);
+                if(!firstAc[pid]) firstAc[pid] = s;
+            });
+            let attSet = new Set();
+            let errPerQ = {};
+            subs.forEach(s => {
+                let p = s.problem;
+                if(!p || !p.contestId) return;
+                let pid = p.contestId + "-" + p.index;
+                attSet.add(pid);
+                subCountPerQ[pid] = (subCountPerQ[pid]||0)+1;
+                if(s.verdict!=="OK" && s.verdict!=="TESTING") {
+                    if(!errPerQ[pid]) errPerQ[pid] = [];
+                    errPerQ[pid].push(s);
+                }
+            });
+            let unsolved = [...attSet].filter(x => !sSet.has(x));
+            
+            let psHtml = `
+                <div class="sub-grid" style="margin-bottom:8px;">
+                    <div><div class="mini-lbl">Attempted</div><div class="mega-val">${attSet.size}</div></div>
+                    <div><div class="mini-lbl">Solved</div><div class="mega-val green">${sSet.size}</div></div>
+                </div>
+                ${statRow("Never Solved (Dead)", unsolved.length)}
+                ${barRow("Overall Solve Rate", sSet.size, attSet.size, ((sSet.size/(attSet.size||1))*100).toFixed(1)+"%", "green")}
+            `;
+            els.grid.appendChild(makeCard("Problems Journey", "check-circle", psHtml));
+
+
+            // ───── 4. Time To Solve ─────
+            let firstSub = {};
+            [...subs].sort((a,b)=>a.creationTimeSeconds - b.creationTimeSeconds).forEach(s => {
+                let pid = s.problem.contestId + "-" + s.problem.index;
+                if(!firstSub[pid]) firstSub[pid] = s.creationTimeSeconds;
+            });
+            let diffs = [];
+            let fTryAc = 0;
+            for(let pid in firstAc) {
+                let start = firstSub[pid];
+                let end = firstAc[pid].creationTimeSeconds;
+                if(start && end >= start) {
+                    let td = end - start;
+                    diffs.push({pid, td, name:firstAc[pid].problem.name});
+                    if(td === 0) fTryAc++;
+                }
+            }
+            diffs.sort((a,b) => a.td - b.td);
+            let ttsHtml = "";
+            if(diffs.length) {
+                let med = diffs[Math.floor(diffs.length/2)].td;
+                let mean = diffs.reduce((s,a)=>s+a.td,0) / diffs.length;
+                let bkts = [
+                    {lbl:"0s (1st Try)", fn:t=>t===0},
+                    {lbl:"< 5m", fn:t=>t>0 && t<300},
+                    {lbl:"5m - 15m", fn:t=>t>=300 && t<900},
+                    {lbl:"15m - 30m", fn:t=>t>=900 && t<1800},
+                    {lbl:"30m - 1h", fn:t=>t>=1800 && t<3600},
+                    {lbl:"1h+", fn:t=>t>=3600}
+                ];
+                ttsHtml += `
+                    <div class="sub-grid" style="margin-bottom:8px;">
+                        <div><div class="mini-lbl">Median TTS</div><div class="mega-val">${hms(med)}</div></div>
+                        <div><div class="mini-lbl">First Try AC%</div><div class="mega-val green">${((fTryAc/diffs.length)*100).toFixed(0)}%</div></div>
+                    </div>
+                `;
+                bkts.forEach(b => {
+                    let amt = diffs.filter(d => b.fn(d.td)).length;
+                    ttsHtml += barRow(b.lbl, amt, diffs.length, amt, "blue");
+                });
+            } else {
+                ttsHtml = "<div class='stat-row'>No data</div>";
+            }
+            els.grid.appendChild(makeCard("Time to Solve", "clock", ttsHtml));
+
+
+            // ───── 5. Hardest / Failed ─────
+            let hList = [];
+            for(let pid in errPerQ) {
+                if(sSet.has(pid)) hList.push({pid, errs: errPerQ[pid].length, name: errPerQ[pid][0].problem.name});
+            }
+            hList.sort((a,b)=>b.errs - a.errs);
+            let hItems = hList.slice(0,5).map(x => ({left: x.name || x.pid, right: x.errs+" WAs"}));
+            
+            let wHtml = `<div class="mini-lbl" style="margin-bottom:4px">Most WA BEFORE AC</div>`;
+            wHtml += hItems.length ? listGroup(hItems) : '<div class="stat-lbl">You AC everything first try!</div>';
+            
+            let uList = unsolved.map(pid => {
+                return {pid, errs: errPerQ[pid] ? errPerQ[pid].length : 1};
+            }).sort((a,b)=>b.errs - a.errs);
+            let uItems = uList.slice(0,5).map(x => ({left: x.pid, right: x.errs+" fails"}));
+            
+            wHtml += `<div class="mini-lbl" style="margin-top:12px; margin-bottom:4px">Painful Dead Ends</div>`;
+            wHtml += uItems.length ? listGroup(uItems) : '<div class="stat-lbl">No unsolved attempts.</div>';
+
+            els.grid.appendChild(makeCard("Wall of Pain", "skull", wHtml));
+
+
+            // ───── 6. Rating Bracket (Difficulty) ─────
+            let dSub = {}, dAtt = {};
+            [...attSet].forEach(pid => {
+                let first = subs.find(s => s.problem.contestId+"-"+s.problem.index === pid);
+                if(first) {
+                    let r = first.problem.rating;
+                    let k = r ? Math.floor(r/100)*100 : "Unrated";
+                    dAtt[k] = (dAtt[k]||0)+1;
+                }
+            });
+            for(let pid in firstAc) {
+                let r = firstAc[pid].problem.rating;
+                let k = r ? Math.floor(r/100)*100 : "Unrated";
+                dSub[k] = (dSub[k]||0)+1;
+            }
+            let keys = [...new Set([...Object.keys(dAtt), ...Object.keys(dSub)])];
+            keys.sort((a,b)=>{ 
+                if(a==="Unrated")return 1; if(b==="Unrated")return -1; 
+                return parseInt(a)-parseInt(b); 
+            });
+            let rHtml = `<div style="max-height: 250px; overflow-y:auto; padding-right:4px;">`;
+            keys.forEach(k => {
+                let s = dSub[k]||0, a = dAtt[k]||0;
+                rHtml += barRow(k, s, a, `${s}/${a}`, s>0 && s===a?'green':'accent');
+            });
+            rHtml += "</div>";
+            els.grid.appendChild(makeCard("Rating Distribution", "bar-chart-2", rHtml));
+
+
+            // ───── 7. Tags (Top 10) ─────
+            let tSub = {}, tAtt = {};
+            [...attSet].forEach(pid => {
+                let first = subs.find(s => s.problem.contestId+"-"+s.problem.index === pid);
+                if(first && first.problem.tags) {
+                    first.problem.tags.forEach(t=>{ tAtt[t]=(tAtt[t]||0)+1; });
+                }
+            });
+            for(let pid in firstAc) {
+                let tgs = firstAc[pid].problem.tags;
+                if(tgs) tgs.forEach(t=>{ tSub[t]=(tSub[t]||0)+1; });
+            }
+            let tKeys = Object.keys(tAtt).sort((a,b)=> (tSub[b]||0) - (tSub[a]||0)).slice(0, 10);
+            let tgHtml = `<div style="max-height: 250px; overflow-y:auto; padding-right:4px;">`;
+            tKeys.forEach(t => {
+                let s = tSub[t]||0, a = tAtt[t]||0;
+                tgHtml += barRow(t.length>12 ? t.substring(0,10)+".." : t, s, a, `${s}/${a}`, 'orange');
+            });
+            tgHtml += "</div>";
+            els.grid.appendChild(makeCard("Top Tags", "tag", tgHtml));
+
+
+            // ───── 8. Index (A, B, C...) ─────
+            let iSub = {}, iAtt = {};
+            [...attSet].forEach(pid => {
+                let first = subs.find(s => s.problem.contestId+"-"+s.problem.index === pid);
+                if(first && first.problem.index) {
+                    let idx = first.problem.index[0].toUpperCase();
+                    iAtt[idx]=(iAtt[idx]||0)+1; 
+                }
+            });
+            for(let pid in firstAc) {
+                let i = firstAc[pid].problem.index[0].toUpperCase();
+                iSub[i]=(iSub[i]||0)+1;
+            }
+            let iKeys = Object.keys(iAtt).sort();
+            let idxHtml = ``;
+            iKeys.forEach(i => {
+                let s = iSub[i]||0, a = iAtt[i]||0;
+                idxHtml += barRow(i, s, a, `${s}/${a}`, 'accent');
+            });
+            els.grid.appendChild(makeCard("Letters Index", "hash", idxHtml));
+
+
+            // ───── 9. Contests ─────
+            let cHtml = "";
+            if (ratings.length > 0) {
+                let deltas = ratings.map(r => r.newRating - r.oldRating);
+                let pos = deltas.filter(d => d > 0);
+                let neg = deltas.filter(d => d < 0);
+                cHtml = `
+                    <div class="sub-grid" style="margin-bottom:8px;">
+                        <div><div class="mini-lbl">Contests</div><div class="mega-val">${ratings.length}</div></div>
+                        <div><div class="mini-lbl">Net Rating</div><div class="mega-val ${deltas.reduce((x,y)=>x+y,0)>0?'green':'red'}">${deltas.reduce((x,y)=>x+y,0)>0?'+':''}${deltas.reduce((x,y)=>x+y,0)}</div></div>
+                    </div>
+                    ${statRow("Top Gain", pos.length ? `+${Math.max(...pos)}` : 0)}
+                    ${statRow("Worst Drop", neg.length ? Math.min(...neg) : 0)}
+                    ${statRow("Avg Delta", (deltas.reduce((x,y)=>x+y,0)/deltas.length).toFixed(1))}
+                `;
+            } else {
+                cHtml = "<div class='stat-row'>No contest history.</div>";
+            }
+            els.grid.appendChild(makeCard("Rating Tests", "trending-up", cHtml));
+
+
+            // ───── 10. Streaks ─────
+            let sHtml = "";
+            if (acc.length) {
+                let days = [...new Set(acc.map(s => {
+                    let d = new Date(s.creationTimeSeconds * 1000);
+                    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+                }))].sort();
+                
+                let curStr = 1, maxStr = 1;
+                for(let i=1; i<days.length; i++) {
+                    let d1 = new Date(days[i-1]), d2 = new Date(days[i]);
+                    let diffDay = (d2 - d1) / 86400000;
+                    if(Math.round(diffDay) === 1) {
+                        curStr++;
+                        maxStr = Math.max(maxStr, curStr);
+                    } else curStr = 1;
+                }
+                
+                // Curr streak
+                let today = new Date(); 
+                today.setHours(0,0,0,0);
+                let lastD = new Date(days[days.length-1]);
+                let lastDiff = Math.floor((today - lastD)/86400000);
+                let cs = lastDiff <= 1 ? curStr : 0;
+
+                sHtml = `
+                    <div class="sub-grid" style="margin-bottom:8px;">
+                        <div><div class="mini-lbl">Longest Streak</div><div class="mega-val">${maxStr}</div></div>
+                        <div><div class="mini-lbl">Current Streak</div><div class="mega-val orange">${cs}</div></div>
+                    </div>
+                    ${statRow("Total Active Days", days.length)}
+                `;
+            } else {
+                sHtml = "<div class='stat-row'>No solved problems yet.</div>";
+            }
+            els.grid.appendChild(makeCard("Active Streaks", "flame", sHtml));
+        }
+
+        // Auto load 
+        if (cachedHandle) els.fetchBtn.click();
+
+
     </script>
 </body>
-
 </html>
