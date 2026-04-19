@@ -632,6 +632,15 @@
             font-weight: 600 !important;
         }
 
+        .f-btn.exclude,
+        .idx-btn.exclude,
+        .t-chip.exclude {
+            background: rgba(243, 139, 168, 0.1) !important;
+            border-color: rgba(243, 139, 168, 0.4) !important;
+            color: var(--r-red) !important;
+            text-decoration: line-through;
+        }
+
         /* Index button */
         .idx-btn {
             width: 32px;
@@ -1677,7 +1686,9 @@
 
         const state = {
             search: '', minRating: '', maxRating: '',
-            divs: new Set(), indexes: new Set(), tags: new Set(),
+            divs: new Set(), excludeDivs: new Set(),
+            indexes: new Set(), excludeIndexes: new Set(),
+            tags: new Set(), excludeTags: new Set(),
             hideSolved: true, hideTags: true, sort: 'newest',
             hideUnsolved: false
         };
@@ -1788,7 +1799,7 @@
                 b.className = 'f-btn';
                 b.textContent = d === 'Educational' ? 'Edu' : d;
                 b.title = d;
-                b.onclick = () => { toggle(state.divs, d, b); filter(); };
+                b.onclick = () => { toggle(state.divs, state.excludeDivs, d, b); filter(); };
                 dc.appendChild(b);
             });
 
@@ -1797,7 +1808,7 @@
                 const b = document.createElement('button');
                 b.className = 'idx-btn';
                 b.textContent = i;
-                b.onclick = () => { toggle(state.indexes, i, b); filter(); };
+                b.onclick = () => { toggle(state.indexes, state.excludeIndexes, i, b); filter(); };
                 ic.appendChild(b);
             });
 
@@ -1807,8 +1818,8 @@
                 b.className = 't-chip';
                 b.textContent = t;
                 b.onclick = () => {
-                    toggle(state.tags, t, b, true);
-                    document.getElementById('clearTagsBtn').classList.toggle('show', state.tags.size > 0);
+                    toggle(state.tags, state.excludeTags, t, b);
+                    document.getElementById('clearTagsBtn').classList.toggle('show', state.tags.size > 0 || state.excludeTags.size > 0);
                     filter();
                 };
                 tc.appendChild(b);
@@ -1829,7 +1840,11 @@
             });
             $('clearTagsBtn').addEventListener('click', () => {
                 state.tags.clear();
-                document.querySelectorAll('#tagFilters button').forEach(b => b.classList.remove('on'));
+                state.excludeTags.clear();
+                document.querySelectorAll('#tagFilters button').forEach(b => {
+                    b.classList.remove('on');
+                    b.classList.remove('exclude');
+                });
                 $('clearTagsBtn').classList.remove('show');
                 filter();
             });
@@ -1840,9 +1855,19 @@
             });
         }
 
-        function toggle(set, val, btn) {
-            if (set.has(val)) { set.delete(val); btn.classList.remove('on'); }
-            else { set.add(val); btn.classList.add('on'); }
+        function toggle(includedSet, excludedSet, val, btn) {
+            if (includedSet.has(val)) {
+                includedSet.delete(val);
+                excludedSet.add(val);
+                btn.classList.remove('on');
+                btn.classList.add('exclude');
+            } else if (excludedSet.has(val)) {
+                excludedSet.delete(val);
+                btn.classList.remove('exclude');
+            } else {
+                includedSet.add(val);
+                btn.classList.add('on');
+            }
         }
 
         /* ── Filter & Sort ── */
@@ -1877,8 +1902,17 @@
                     const c = p.index.charAt(0).toUpperCase();
                     if (!state.indexes.has(c) && !(state.indexes.has('G+') && c >= 'G')) return false;
                 }
+                if (state.excludeIndexes.size > 0) {
+                    const c = p.index.charAt(0).toUpperCase();
+                    if (state.excludeIndexes.has(c) || (state.excludeIndexes.has('G+') && c >= 'G')) return false;
+                }
+                
                 if (state.divs.size > 0 && ![...state.divs].some(d => p.contestName.includes(d))) return false;
+                if (state.excludeDivs.size > 0 && [...state.excludeDivs].some(d => p.contestName.includes(d))) return false;
+                
                 if (state.tags.size > 0 && ![...state.tags].every(t => p.tags.includes(t))) return false;
+                if (state.excludeTags.size > 0 && [...state.excludeTags].some(t => p.tags.includes(t))) return false;
+                
                 return true;
             });
 
